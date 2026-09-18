@@ -1,46 +1,23 @@
-import crypto from 'crypto';
+const axios = require('axios');
+const crypto = require('crypto');
 
-export default async function handler(req, res) {
-  // Hanya terima method POST
-  if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, message: 'Method Not Allowed' });
-  }
+module.exports = async (req, res) => {
+    const API_KEY = "ys4l4K9xYsY6JeyWxCuECbizvxzhfkjR7Kp5oesvLgKFGIlXLZSf86aL4wsMckMi";
+    const MERCHANT_ID = "fNsuSlfW";
+    const sign = crypto.createHash('md5').update(API_KEY + MERCHANT_ID).digest('hex');
 
-  // Ambil secret dari Environment Variable Vercel
-  const apiKey = process.env.VIPAYMENT_KEY;
-  const apiSign = process.env.VIPAYMENT_SIGN;
+    try {
+        const params = new URLSearchParams();
+        params.append('key', API_KEY);
+        params.append('sign', sign);
 
-  if (!apiKey || !apiSign) {
-    return res.status(500).json({ success: false, message: 'API Key atau Sign belum disetting di Vercel.' });
-  }
-
-  try {
-    // Parameter wajib dari VIPAYMENT
-    const params = new URLSearchParams();
-    params.append('key', apiKey);
-    params.append('sign', apiSign);
-
-    // Hit ke VIPAYMENT
-    const response = await fetch('https://vip-reseller.co.id/api/profile', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: params.toString()
-    });
-
-    const data = await response.json();
-
-    if (data.result) {
-      res.status(200).json({ 
-        success: true, 
-        balance: data.data.balance,
-        name: data.data.name
-      });
-    } else {
-      res.status(400).json({ success: false, message: data.message });
+        const response = await axios.post(
+            'https://vip-reseller.co.id/api/profile',
+            params.toString(),
+            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+        );
+        res.json(response.data);
+    } catch (error) {
+        res.json({ result: false, message: error.message });
     }
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
-  }
-}
+};
