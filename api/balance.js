@@ -2,8 +2,8 @@ const axios = require('axios');
 const crypto = require('crypto');
 
 module.exports = async (req, res) => {
-    const API_KEY = "ys4l4K9xYsY6JeyWxCuECbizvxzhfkjR7Kp5oesvLgKFGIlXLZSf86aL4wsMckMi";
-    const MERCHANT_ID = "fNsuSlfW";
+    const API_KEY = process.env.VIPAYMENT_KEY;
+    const MERCHANT_ID = process.env.VIPAYMENT_MERCHANT;
     const sign = crypto.createHash('md5').update(API_KEY + MERCHANT_ID).digest('hex');
 
     try {
